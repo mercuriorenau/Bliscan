@@ -26,6 +26,7 @@ pill-blister-detector/
 └── requirements.txt
 ```
 # Installations
+---
 ## ultralytics
 ```bash
 pip install ultralytics
