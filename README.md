@@ -25,7 +25,14 @@ pill-blister-detector/
 ├── .gitignore
 └── requirements.txt
 ```
+---
+# Instala OpenCV
+Esto instala la versión principal de OpenCV (cv2) para usar con Python.
+```bash
+pip install opencv-python
+```
 
+---
 # Crea tu entorno con Anaconda
 1. Ve a: https://www.anaconda.com/products/distribution
 2. Descarga e instala Anaconda para Windows (64-bit, Python 3.x)
@@ -54,7 +61,7 @@ python -c "import torch; print('CUDA disponible:', torch.cuda.is_available())"
 ```bash
 conda activate nombre_de_entorno
 ```
-
+---
 # YOLOv8 model
 El entrenamiento se realizo con una NVIDIA RTX 4060
 ---
