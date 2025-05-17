@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import io
+import base64
 
 app = FastAPI()
 
@@ -16,8 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the pre-trained YOLO model
-model = YOLO('yolov8n.pt')  # Using the smallest YOLOv8 model
+model = YOLO('model/modelin.pt') 
 
 @app.post("/detect")
 async def detect_pills(file: UploadFile = File(...)):
@@ -35,7 +35,6 @@ async def detect_pills(file: UploadFile = File(...)):
         class_ids = detections.cls.tolist()
         class_names = [model.names[int(id)] for id in class_ids]
     else:
-        class_ids = []
         class_names = []
     
     # Count objects by class
@@ -50,7 +49,10 @@ async def detect_pills(file: UploadFile = File(...)):
     _, buffer = cv2.imencode('.jpg', annotated_frame)
     img_bytes = buffer.tobytes()
     
+    # Convert bytes to base64
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+    
     return {
         "detections": class_counts,
-        "image": img_bytes
+        "image": img_base64
     } 

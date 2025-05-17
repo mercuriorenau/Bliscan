@@ -1,146 +1,107 @@
-import { Box, Container, Typography, Button, CircularProgress } from '@mui/material';
-import { useState } from 'react';
-import logo from '../assets/logo.png';
+import React, { useEffect, useState } from "react";
+import { Box, Typography, Paper } from "@mui/material";
+import logo from "../assets/logo.png";
+
+const BACKEND_URL = "http://localhost:5002";
+
+const fontFamily = `'Montserrat', 'Roboto', 'Arial', sans-serif`;
 
 const Camera = () => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [detectionResult, setDetectionResult] = useState<{ detections: Record<string, number>; image: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [detections, setDetections] = useState<{Empty?: number; Full?: number}>({ Empty: 0, Full: 0 });
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Display the selected image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setSelectedImage(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Upload and process the image
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('http://localhost:8000/detect', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error processing image');
+  useEffect(() => {
+    const fetchDetections = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/detections`);
+        if (response.ok) {
+          const data = await response.json();
+          setDetections(data);
+        }
+      } catch (error) {
+        console.error("Error fetching detections:", error);
       }
+    };
 
-      const result = await response.json();
-      setDetectionResult({
-        detections: result.detections,
-        image: `data:image/jpeg;base64,${Buffer.from(result.image).toString('base64')}`,
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error processing image. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchDetections();
+    const interval = setInterval(fetchDetections, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <Container maxWidth="lg">
-      <Box
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+        py: 4,
+      }}
+    >
+      {/* Logo más grande */}
+      <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
+        <img src={logo} alt="BliScan Logo" style={{ height: 130, objectFit: "contain" }} />
+      </Box>
+      <img
+        src={`${BACKEND_URL}/video_feed`}
+        alt="Video Stream"
+        style={{
+          width: 640,
+          height: 480,
+          borderRadius: 8,
+          border: "1.5px dashed #fff",
+          objectFit: "cover",
+          background: "#000",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+        }}
+      />
+      <Paper
+        elevation={3}
         sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 4,
-          py: 4,
+          p: 3,
+          backgroundColor: "rgba(0, 180, 216, 0.1)",
+          borderRadius: 2,
+          width: "100%",
+          maxWidth: 640,
         }}
       >
-        <Box
-          component="img"
-          src={logo}
-          alt="Bliscan Logo"
-          sx={{
-            width: 'auto',
-            height: '100px',
-            objectFit: 'contain',
-          }}
-        />
-        
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: 800,
-            height: 600,
-            backgroundColor: '#f5f5f5',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 2,
-            border: '2px dashed #ccc',
-            gap: 2,
-            position: 'relative',
-          }}
+        {/* Centrar el texto del título */}
+        <Typography 
+          variant="h6" 
+          color="text.primary" 
+          gutterBottom 
+          sx={{ textAlign: 'center', fontFamily }}
         >
-          {loading ? (
-            <CircularProgress />
-          ) : detectionResult ? (
-            <>
-              <Box
-                component="img"
-                src={detectionResult.image}
-                alt="Detection Result"
-                sx={{
-                  maxWidth: '100%',
-                  maxHeight: '80%',
-                  objectFit: 'contain',
-                }}
-              />
-              <Typography variant="h6">
-                Detected Objects:
-                {Object.entries(detectionResult.detections).map(([name, count]) => (
-                  <Box key={name} sx={{ mt: 1 }}>
-                    {name}: {count}
-                  </Box>
-                ))}
-              </Typography>
-            </>
-          ) : selectedImage ? (
-            <Box
-              component="img"
-              src={selectedImage}
-              alt="Selected Image"
-              sx={{
-                maxWidth: '100%',
-                maxHeight: '80%',
-                objectFit: 'contain',
-              }}
-            />
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              Upload an image to detect objects
+          Estado del Blister
+        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "space-around", mt: 2 }}>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography 
+              variant="h3" 
+              color="success.main" 
+              sx={{ fontWeight: 700, fontFamily }}
+            >
+              {detections.Full || 0}
             </Typography>
-          )}
-
-          <Button
-            variant="contained"
-            component="label"
-            sx={{ mt: 2 }}
-          >
-            Upload Image
-            <input
-              type="file"
-              hidden
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-          </Button>
+            <Typography variant="body1" color="text.secondary" sx={{ fontFamily }}>
+              Píldoras Detectadas
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography 
+              variant="h3" 
+              color="error.main" 
+              sx={{ fontWeight: 700, fontFamily }}
+            >
+              {detections.Empty || 0}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ fontFamily }}>
+              Espacios Vacíos
+            </Typography>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Paper>
+    </Box>
   );
 };
 

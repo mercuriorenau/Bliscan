@@ -5,3 +5,5 @@ numpy>=1.24.0
 fastapi>=0.68.0
 python-multipart>=0.0.5
 uvicorn>=0.15.0 
+# Comando para instalar todas las dependencias
+# pip install -r requirements.txt
