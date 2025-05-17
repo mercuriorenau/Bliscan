@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Paper } from "@mui/material";
 import logo from "../assets/logo.png";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 const BACKEND_URL = "http://localhost:5002";
 
@@ -26,6 +28,9 @@ const Camera = () => {
     const interval = setInterval(fetchDetections, 100);
     return () => clearInterval(interval);
   }, []);
+
+  // Determinar si hay alerta o todo bien
+  const isAlert = (detections.Empty ?? 0) > 0;
 
   return (
     <Box
@@ -65,6 +70,14 @@ const Camera = () => {
           maxWidth: 640,
         }}
       >
+        {/* Ícono de alerta o todo bien */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+          {isAlert ? (
+            <ErrorOutlineIcon sx={{ fontSize: 60, color: '#ff1744' }} />
+          ) : (
+            <CheckCircleIcon sx={{ fontSize: 60, color: '#00e676' }} />
+          )}
+        </Box>
         {/* Centrar el texto del título */}
         <Typography 
           variant="h6" 

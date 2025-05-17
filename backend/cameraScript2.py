@@ -20,7 +20,7 @@ model = None
 
 def load_model():
     global model
-    model = YOLO('model/modelin.pt')
+    model = YOLO('backend/model/modelin.pt')
     print("Modelo YOLO cargado correctamente.")
 
 def generate_frames():
@@ -32,7 +32,7 @@ def generate_frames():
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        time.sleep(0.1)
+        time.sleep(0.1) # Tiempo de espera entre frames (si le bajamos ira mas fluido pero son mas llamadas al servidor)
 
 def process_camera():
     global current_frame, current_detections
@@ -47,11 +47,11 @@ def process_camera():
             print("Error: No se pudo leer la webcam.")
             continue
 
-        # --- Detección YOLO ---
+        # --- DETECCIONES YOLO ---
         results = model(frame)
         annotated_frame = results[0].plot()  # Dibuja las cajas y clases sobre el frame
 
-        # Contar detecciones
+        # Contador de detecciones
         detections = results[0].boxes
         if detections is not None:
             class_ids = detections.cls.tolist()
@@ -92,10 +92,8 @@ def detect_pills():
     if img is not None:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     
-    # Perform detection
     results = model(img, conf=0.5, verbose=True)
     
-    # Get detections
     detections = results[0].boxes
     if detections is not None:
         class_ids = detections.cls.tolist()
@@ -109,7 +107,7 @@ def detect_pills():
     return jsonify(class_counts)
 
 if __name__ == '__main__':
-    load_model()  # Cargar el modelo YOLO al iniciar
+    load_model()  # Carga el modelo YOLO al iniciar
     camera_thread = threading.Thread(target=process_camera)
     camera_thread.daemon = True
     camera_thread.start()
