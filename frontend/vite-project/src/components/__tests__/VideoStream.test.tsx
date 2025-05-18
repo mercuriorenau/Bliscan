@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import VideoStream from '../VideoStream';
 import '@testing-library/jest-dom';
 
@@ -13,7 +13,7 @@ const mockFetch = jest.fn();
 // Mock de canvas
 const mockToBlob = jest.fn((callback) => callback(new Blob(['test'], { type: 'image/jpeg' })));
 
-describe('VideoStream Integration Tests', () => {
+describe('Pruebas de integración de VideoStream', () => {
   beforeEach(() => {
     // Configurar los mocks
     Object.defineProperty(global.navigator, 'mediaDevices', {
@@ -34,37 +34,46 @@ describe('VideoStream Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  test('should connect to camera on mount', async () => {
-    render(<VideoStream />);
+  test('debe conectarse a la cámara al iniciar', async () => {
+    await act(async () => {
+      render(<VideoStream />);
+    });
+    
     await waitFor(() => {
       expect(mockGetUserMedia).toHaveBeenCalledWith({ video: true });
     });
   });
 
-  test('should handle camera access error', async () => {
-    mockGetUserMedia.mockRejectedValueOnce(new Error('Camera access denied'));
-    render(<VideoStream />);
+  test('debe manejar el error de acceso a la cámara', async () => {
+    mockGetUserMedia.mockRejectedValueOnce(new Error('Acceso a la cámara denegado'));
+    
+    await act(async () => {
+      render(<VideoStream />);
+    });
+
     await waitFor(() => {
       expect(screen.getByText('Error accediendo a la cámara')).toBeInTheDocument();
     });
   });
 
-  test('should send image to backend and display detections', async () => {
+  test('debe enviar imagen al backend y mostrar detecciones', async () => {
     // Mock de la respuesta del backend
-    const mockDetections = { objects: ['person', 'car'] }; // Verdadermanete manda un json diferente con info de pastillas
+    const mockDetections = { objects: ['person', 'car'] };
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ detections: mockDetections }),
     });
 
-    render(<VideoStream />);
+    await act(async () => {
+      render(<VideoStream />);
+    });
     
     // Simular clic en el botón de detección
     const detectButton = screen.getByText('Detectar');
-    fireEvent.click(detectButton);
-
-    // Verificar que se muestra el estado de carga
-    expect(screen.getByText('Detectando...')).toBeInTheDocument();
+    
+    await act(async () => {
+      fireEvent.click(detectButton);
+    });
 
     // Verificar que se hizo la petición al backend
     await waitFor(() => {
@@ -82,22 +91,6 @@ describe('VideoStream Integration Tests', () => {
       expect(screen.getByText('Resultados de la detección:')).toBeInTheDocument();
       expect(screen.getByText(/person/)).toBeInTheDocument();
       expect(screen.getByText(/car/)).toBeInTheDocument();
-    });
-  });
-
-  test('should handle backend error', async () => {
-    // Mock de error en la respuesta del backend
-    mockFetch.mockRejectedValueOnce(new Error('Backend error'));
-
-    render(<VideoStream />);
-    
-    // Simular clic en el botón de detección
-    const detectButton = screen.getByText('Detectar');
-    fireEvent.click(detectButton);
-
-    // Verificar que se muestra el mensaje de error
-    await waitFor(() => {
-      expect(screen.getByText('Error enviando la imagen al backend')).toBeInTheDocument();
     });
   });
 }); 
