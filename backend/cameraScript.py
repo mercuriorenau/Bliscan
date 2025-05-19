@@ -2,7 +2,7 @@ import cv2
 from ultralytics import YOLO
 
 # Ruta al modelo entrenado
-model = YOLO('D:/Users/Hackerdude/SCHOOL/pillBlister/Bliscan/backend/runs/detect/bliscan-yolov8m6/weights/best.pt')
+model = YOLO('best.pt')
 
 
 # Inicializar cámara
