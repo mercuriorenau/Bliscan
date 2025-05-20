@@ -3,8 +3,8 @@ from ultralytics import YOLO
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 import threading
-import time
 import os
+import time
 import numpy as np
 
 app = Flask(__name__)
