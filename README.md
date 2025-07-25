@@ -4,7 +4,8 @@
 
 # BliScan
 
-**1st Place — Expo Ingeniería 2025, CETYS Universidad**
+**1st Place — Expo Ingeniería x Innovation Challenge 2025, CETYS Universidad**  
+[Award post (certificate & trophy)](https://www.linkedin.com/feed/update/urn:li:activity:7331820149240406018/)
 
 Real-time computer vision system for pharmaceutical blister-pack quality control. BliScan detects **Full** (filled) and **Empty** (missing pill) cells using a custom **YOLOv8s** detector, a Flask live-streaming backend, and a React operator dashboard.
 
