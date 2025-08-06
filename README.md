@@ -131,7 +131,7 @@ yolo task=detect mode=val model=backend/model/modelin.pt data=path/to/data.yaml
 Bliscan/
 ├── .env.example
 ├── gif/
-│   └── BliscanGIF.gif          # Live demo GIF
+│   └── BliscanGIF.gif          # Live demo GIF (compressed for faster loading)
 ├── dataset/
 ├── backend/
 │   ├── api.py                  # FastAPI inference API
