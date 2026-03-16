@@ -1,10 +1,10 @@
-# 💊 Pill Blister Detector
+# Pill Blister Detector
 
 A full-stack application for detecting individual pills in pharmaceutical blister packs using a YOLOv8 deep learning model and a modern frontend built with Vite + React.
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 This project aims to:
 - Train a YOLOv8 model to detect pills in blister packs.
@@ -13,7 +13,7 @@ This project aims to:
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```bash
 pill-blister-detector/
