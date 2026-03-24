@@ -1,85 +1,133 @@
-# 💊 Pill Blister Detector
+<p align="center">
+  <img src="README-banner.png" alt="Bliscan" width="720" />
+</p>
 
-A full-stack application for detecting individual pills in pharmaceutical blister packs using a YOLOv8 deep learning model and a modern frontend built with Vite + React.
+# Bliscan
 
----
-
-## 🚀 Project Overview
-
-This project aims to:
-- Train a YOLOv8 model to detect pills in blister packs.
-- Provide a RESTful API for image inference using FastAPI.
-- Present an intuitive frontend where users can upload images and visualize detected pills.
+Full-stack computer vision system for detecting pills and empty cells in pharmaceutical blister packs. It combines a **YOLOv8** detector trained on custom data with a **Flask** service for live webcam inference, a **FastAPI** API for image uploads, and a **React + Vite** operator interface.
 
 ---
 
-## 🗂️ Project Structure
+## Model performance (validation)
 
-```bash
-pill-blister-detector/
-├── backend/      # FastAPI app serving the trained model
-├── dataset/      # Images and annotations (if public)
-├── frontend/     # Vite + React web interface
-├── training/     # YOLOv8 training scripts and configs
-├── README.md
-├── .gitignore
-└── requirements.txt
-```
----
-# Instala OpenCV
-Esto instala la versión principal de OpenCV (cv2) para usar con Python.
-```bash
-pip install opencv-python
-```
+Metrics below correspond to the **final epoch (50)** of the training run recorded under `backend/model/bliscan-yolov8m6/` (Ultralytics validation split).
+
+| Metric | Value |
+|--------|-------|
+| mAP@0.5 | 96.29% |
+| mAP@0.5:0.95 | 78.06% |
+| Precision | 98.95% |
+| Recall | 93.95% |
+
+**Training configuration (reference):** YOLOv8s, image size 640, batch 16, up to 50 epochs, early stopping patience 15, mixed precision (AMP). Hardware used for that run: NVIDIA RTX 4060.
+
+![Training curves](backend/model/bliscan-yolov8m6/results.png)
 
 ---
-# Crea tu entorno con Anaconda
-1. Ve a: https://www.anaconda.com/products/distribution
-2. Descarga e instala Anaconda para Windows (64-bit, Python 3.x)
-!!! Durante la instalación:
-    ✅Marca la opción "Add Anaconda to my PATH environment variable" si se te ofrece. [Asegurate de que este en tus variables de entorno].
-    ✅Instala para ti solamente (recomendado).
-3. Abre el menú de inicio → busca Anaconda Prompt → clic derecho → Ejecutar como administrador
-4. Crea entorno para YOLOv8
-```bash
-conda create -n nombre_de_entorno python=3.10 -y
-conda activate nombre_de_entorno
-```
-5. Instala PyTorch con soporte para CUDA
-```bash
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y
-```
-6. Instala ultralytics
-```bash
-pip install ultralytics
-```
-7. Verifica que PyTorch detecte tu GPU
-```bash
-python -c "import torch; print('CUDA disponible:', torch.cuda.is_available())"
-```
-8. Cada vez que entrenes abre Anaconda Prompt y activa tu entorno
-```bash
-conda activate nombre_de_entorno
-```
----
-# YOLOv8 model
-El entrenamiento se realizo con una NVIDIA RTX 4060
----
-## Train
-```bash
-yolo task=detect mode=train model=yolov8m.pt data=data.yaml epochs=100 imgsz=640 batch=16 patience=18
-```
-!!! LEE CON ATENCIÓN !!!
-- model= modelo_a_entrenar (secomienda modelo "nano" o "small". Solo usar modelos "medium" o mayor cuando se tiene gran potencia en ordenador).
-- epochs= Veces que el modelo ve todas las imágenes del dataset una vez.
-- batch= Es la cantidad de imágenes que el modelo procesa al mismo tiempo antes de actualizar sus pesos.
-- patience= Es cuántas épocas seguidas sin mejora en el rendimiento del modelo (en validación) se permiten antes de detener el entrenamiento automáticamente (early stopping).
 
-[TODOS ESTOS PARAMETROS DEPENDERAN DE POTENCIA DE PC, TENER CUIDADO AL ENTRENAR CON PARAMETROS Y MODELOS ALTOS]
+## What this repository contains
+
+- **Live inspection:** `backend/cameraScript2.py` serves MJPEG video, detection counts, and optional file upload on port **5002** (Flask).
+- **REST inference:** `backend/api.py` exposes `POST /detect` for image upload and returns per-class counts plus a base64-annotated frame (FastAPI + Uvicorn).
+- **Web UI:** `frontend/vite-project` is a React application that talks to the Flask backend for the camera workflow.
 
 ---
-## Evaluate
-Este comando evalúa el rendimiento de tu modelo YOLOv8 entrenado usando el conjunto de validación que definiste en tu archivo data.yaml.
+
+## Tech stack
+
+| Layer | Technologies |
+|-------|----------------|
+| Model | PyTorch, Ultralytics YOLOv8, OpenCV |
+| Live backend | Flask, Flask-CORS, threading |
+| API | FastAPI, python-multipart, Uvicorn |
+| Frontend | React, TypeScript, Vite, Material UI |
+
+---
+
+## Prerequisites
+
+- Python 3.10+ (3.13 works with current dependencies; use a virtual environment).
+- Node.js 18+ for the frontend.
+- Webcam access for the live demo (`cameraScript2.py`).
+- Trained weights at `backend/model/modelin.pt` (included in this repo).
+
+**Note:** PyTorch 2.6+ defaults to safe tensor loading; this project patches `torch.load` where needed so trusted YOLO checkpoints load correctly (see `api.py` and `cameraScript2.py`).
+
+---
+
+## Backend setup
+
 ```bash
-yolo task=detect mode=val model=runs/detect/blister_model/weights/best.pt data=data.yaml
+cd backend
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
+
+### Run live server (Flask, port 5002)
+
+```bash
+python cameraScript2.py
+```
+
+### Run REST API (FastAPI)
+
+```bash
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+---
+
+## Frontend setup
+
+```bash
+cd frontend/vite-project
+npm install
+npm run dev
+```
+
+Open the URL printed by Vite (typically `http://localhost:5173`). The camera page expects the Flask backend at `http://localhost:5002`.
+
+---
+
+## Training and evaluation (YOLO CLI)
+
+Use your own `data.yaml` pointing to train/val images and labels. Example train command (adjust paths and hyperparameters to your hardware):
+
+```bash
+yolo task=detect mode=train model=yolov8s.pt data=path/to/data.yaml epochs=50 imgsz=640 batch=16 patience=15
+```
+
+Validate a checkpoint:
+
+```bash
+yolo task=detect mode=val model=path/to/best.pt data=path/to/data.yaml
+```
+
+---
+
+## Project structure
+
+```text
+Bliscan/
+├── backend/
+│   ├── api.py                 # FastAPI inference API
+│   ├── cameraScript2.py       # Flask live stream + detections
+│   ├── requirements.txt
+│   ├── model/
+│   │   ├── modelin.pt         # Served weights
+│   │   └── bliscan-yolov8m6/  # Training logs, curves, results.csv
+│   └── test/
+├── frontend/
+│   └── vite-project/          # React UI
+├── README-banner.png          # Hero image (add your banner here if missing)
+└── README.md
+```
+
+Place your banner image at the repository root as **`README-banner.png`** so the header renders on GitHub. If the file is not present, add it or update the `src` in the HTML block at the top of this file.
+
+---
+
+## License
+
+Add a license file if you distribute this project publicly.
