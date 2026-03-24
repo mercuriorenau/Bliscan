@@ -1,5 +1,5 @@
 # Pill Blister Detector
-<img width="1280" height="800" alt="image" src="https://github.com/user-attachments/assets/04206a52-5a9f-48e6-9d99-a95f6b0db793" />
+<img width="656" height="774" alt="Screenshot 2026-03-23 at 10 13 50 p m" src="https://github.com/user-attachments/assets/ff1b53dc-27fb-420d-89b0-cddcb844b695" />
 
 A full-stack application for detecting individual pills in pharmaceutical blister packs using a YOLOv8 deep learning model and a modern frontend built with Vite + React.
 
