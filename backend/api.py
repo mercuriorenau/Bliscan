@@ -5,6 +5,18 @@ import numpy as np
 from ultralytics import YOLO
 import io
 import base64
+import torch
+
+# Guardar la función original de torch.load
+original_torch_load = torch.load
+
+# Crear una nueva función que use weights_only=False
+def custom_torch_load(*args, **kwargs):
+    kwargs['weights_only'] = False
+    return original_torch_load(*args, **kwargs)
+
+# Reemplazar torch.load con nuestra versión personalizada
+torch.load = custom_torch_load
 
 app = FastAPI()
 

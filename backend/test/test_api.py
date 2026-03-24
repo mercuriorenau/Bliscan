@@ -2,8 +2,13 @@
 # python -m pytest test_api.py -v
 import pytest
 from fastapi.testclient import TestClient
-from api import app
+import sys
 import os
+
+# Agregar el directorio padre al path de Python
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from api import app
 import io
 from PIL import Image
 import numpy as np

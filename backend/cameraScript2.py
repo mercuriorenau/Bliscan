@@ -1,4 +1,15 @@
 import cv2
+import torch
+
+# PyTorch 2.6+ usa weights_only=True por defecto; los .pt de YOLO requieren el pickle completo.
+_original_torch_load = torch.load
+
+def _torch_load_trusted_weights(*args, **kwargs):
+    kwargs.setdefault("weights_only", False)
+    return _original_torch_load(*args, **kwargs)
+
+torch.load = _torch_load_trusted_weights
+
 from ultralytics import YOLO
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
@@ -14,13 +25,13 @@ current_frame = None
 current_detections = None
 frame_lock = threading.Lock()
 
-# Ruta al modelo YOLO personalizado
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'best.pt')
+# Ruta al modelo YOLO personalizado (mismo .pt que usa la API)
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'modelin.pt')
 model = None
 
 def load_model():
     global model
-    model = YOLO('backend/model/modelin.pt')
+    model = YOLO(MODEL_PATH)
     print("Modelo YOLO cargado correctamente.")
 
 def generate_frames():
