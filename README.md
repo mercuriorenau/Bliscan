@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="README-banner.png" alt="Bliscan" width="720" />
+  <img width="656" height="774" alt="Screenshot 2026-03-23 at 10 13 50 p m" src="https://github.com/user-attachments/assets/ff1b53dc-27fb-420d-89b0-cddcb844b695" />
 </p>
 
 # Bliscan
 
-Full-stack computer vision system for detecting pills and empty cells in pharmaceutical blister packs. It combines a **YOLOv8** detector trained on custom data with a **Flask** service for live webcam inference, a **FastAPI** API for image uploads, and a **React + Vite** operator interface.
+Bliscan is a full-stack computer vision system for detecting pills and empty cells in pharmaceutical blister packs using a custom YOLOv8 model.
 
 ---
 
-## Model performance (validation)
+## Model Performance (Validation)
 
-Metrics below correspond to the **final epoch (50)** of the training run recorded under `backend/model/bliscan-yolov8m6/` (Ultralytics validation split).
+Metrics below correspond to the final epoch (50) of the training run stored in `backend/model/bliscan-yolov8m6/`.
 
 | Metric | Value |
 |--------|-------|
@@ -19,7 +19,7 @@ Metrics below correspond to the **final epoch (50)** of the training run recorde
 | Precision | 98.95% |
 | Recall | 93.95% |
 
-**Training configuration (reference):** YOLOv8s, image size 640, batch 16, up to 50 epochs, early stopping patience 15, mixed precision (AMP). Hardware used for that run: NVIDIA RTX 4060.
+Training reference: YOLOv8s, image size 640, batch 16, up to 50 epochs, early stopping patience 15, mixed precision (AMP). Hardware: NVIDIA RTX 4060.
 
 ![Training curves](backend/model/bliscan-yolov8m6/results.png)
 
@@ -27,58 +27,49 @@ Metrics below correspond to the **final epoch (50)** of the training run recorde
 
 ## What this repository contains
 
-- **Live inspection:** `backend/cameraScript2.py` serves MJPEG video, detection counts, and optional file upload on port **5002** (Flask).
-- **REST inference:** `backend/api.py` exposes `POST /detect` for image upload and returns per-class counts plus a base64-annotated frame (FastAPI + Uvicorn).
-- **Web UI:** `frontend/vite-project` is a React application that talks to the Flask backend for the camera workflow.
+- **Live inspection backend:** `backend/cameraScript2.py` (Flask, MJPEG stream, webcam inference, live counts on port 5002).
+- **REST inference API:** `backend/api.py` (FastAPI endpoint for uploaded images with class counts and annotated base64 output).
+- **Web frontend:** `frontend/vite-project` (React + Vite operator UI for camera monitoring).
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer | Technologies |
-|-------|----------------|
+|-------|--------------|
 | Model | PyTorch, Ultralytics YOLOv8, OpenCV |
 | Live backend | Flask, Flask-CORS, threading |
-| API | FastAPI, python-multipart, Uvicorn |
+| API | FastAPI, Uvicorn, python-multipart |
 | Frontend | React, TypeScript, Vite, Material UI |
 
 ---
 
 ## Prerequisites
 
-- Python 3.10+ (3.13 works with current dependencies; use a virtual environment).
-- Node.js 18+ for the frontend.
-- Webcam access for the live demo (`cameraScript2.py`).
-- Trained weights at `backend/model/modelin.pt` (included in this repo).
+- Python 3.10+ (project currently runs with Python 3.13 in this repository).
+- Node.js 18+.
+- Webcam access for the live demo.
+- Model weights at `backend/model/modelin.pt`.
 
-**Note:** PyTorch 2.6+ defaults to safe tensor loading; this project patches `torch.load` where needed so trusted YOLO checkpoints load correctly (see `api.py` and `cameraScript2.py`).
+Note: PyTorch 2.6+ defaults to safer deserialization (`weights_only=True`). This project patches trusted YOLO checkpoint loading in backend services to remain compatible.
 
 ---
 
-## Backend setup
+## Run the Project
+
+### 1) Backend (Flask live server)
 
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### Run live server (Flask, port 5002)
-
-```bash
 python cameraScript2.py
 ```
 
-### Run REST API (FastAPI)
+This starts the live backend at `http://localhost:5002`.
 
-```bash
-uvicorn api:app --reload --host 0.0.0.0 --port 8000
-```
-
----
-
-## Frontend setup
+### 2) Frontend (React + Vite)
 
 ```bash
 cd frontend/vite-project
@@ -86,19 +77,27 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite (typically `http://localhost:5173`). The camera page expects the Flask backend at `http://localhost:5002`.
+Open the URL shown by Vite (typically `http://localhost:5173`).
+
+### Optional: FastAPI backend
+
+```bash
+cd backend
+source venv/bin/activate
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
 
 ---
 
-## Training and evaluation (YOLO CLI)
+## Training and Evaluation (YOLO CLI)
 
-Use your own `data.yaml` pointing to train/val images and labels. Example train command (adjust paths and hyperparameters to your hardware):
+Example training command:
 
 ```bash
 yolo task=detect mode=train model=yolov8s.pt data=path/to/data.yaml epochs=50 imgsz=640 batch=16 patience=15
 ```
 
-Validate a checkpoint:
+Example validation command:
 
 ```bash
 yolo task=detect mode=val model=path/to/best.pt data=path/to/data.yaml
@@ -106,28 +105,19 @@ yolo task=detect mode=val model=path/to/best.pt data=path/to/data.yaml
 
 ---
 
-## Project structure
+## Project Structure
 
 ```text
 Bliscan/
 ├── backend/
-│   ├── api.py                 # FastAPI inference API
-│   ├── cameraScript2.py       # Flask live stream + detections
+│   ├── api.py
+│   ├── cameraScript2.py
 │   ├── requirements.txt
 │   ├── model/
-│   │   ├── modelin.pt         # Served weights
-│   │   └── bliscan-yolov8m6/  # Training logs, curves, results.csv
+│   │   ├── modelin.pt
+│   │   └── bliscan-yolov8m6/
 │   └── test/
 ├── frontend/
-│   └── vite-project/          # React UI
-├── README-banner.png          # Hero image (add your banner here if missing)
+│   └── vite-project/
 └── README.md
 ```
-
-Place your banner image at the repository root as **`README-banner.png`** so the header renders on GitHub. If the file is not present, add it or update the `src` in the HTML block at the top of this file.
-
----
-
-## License
-
-Add a license file if you distribute this project publicly.
